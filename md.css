@@ -1,0 +1,142 @@
+body.vscode-dark {
+    background-color: #1e1e1e;
+    color: #cdcdcd;
+}
+
+h2, h3, h4, h5 h6 {
+    scroll-margin-top: 4em;
+}
+
+.vscode-light header {
+    background-color: white;
+}
+
+.vscode-light header>div {
+    border-color: rgba(0, 0, 0, 0.18);
+}
+
+.vscode-dark header {
+    background-color: #1e1e1e;
+}
+
+.vscode-dark header>div {
+    background-color: #1e1e1e;
+    border-color: rgba(255, 255, 255, 0.18);
+}
+
+.vscode-dark h1, .vscode-dark h2, .vscode-dark h3, .vscode-dark h4, .vscode-dark h5, .vscode-dark h6 {
+    color: #d4d4d4;
+}
+
+img {
+    max-width: min(40em, 100%);
+    height: auto;
+    margin: auto;
+    display: block;
+}
+
+header {
+    position: sticky;
+    top: 0;
+}
+
+nav {
+    min-width: 40vw;
+    max-width: 60vw;
+    direction: rtl;
+    height: 100%;
+    float: right;
+    transition: all 2s ease;
+    background-color: white;
+    top: 0;
+    padding-right: 2em;
+    margin-top: 0;
+    display: none;
+}
+
+nav>ul {
+    margin-top: 0;
+}
+
+header>div {
+    display: flex;
+    flex-flow: row wrap;
+    justify-content: space-between;
+    align-items: baseline;
+    border-bottom: 1px solid;
+    border-color: rgba(0, 0, 0, 0.18);
+    background-color: white;
+}
+
+h1 {
+    margin: 0;
+    padding: .6em 0 .4em;
+    flex-grow: 1;
+    border: none;
+}
+
+#theme, #toc {
+    padding: 0 0.5em;
+}
+
+@media only screen and (min-width: 900px) {
+    nav {
+        max-width: 20em;
+        width: fit-content;
+        background-color: unset;
+        height: auto;
+        display: block;
+        position: relative;
+    }
+    main {
+        width: 80%;
+    }
+    #toc {
+        display: none;
+    }
+}
+
+nav li::marker {
+    color: #AAA;
+}
+
+nav li {
+    list-style-type: square;
+    padding: 0;
+}
+
+li.active {
+    color: #57A64A;
+}
+
+li li.active {
+    color: unset;
+}
+
+li li.active::marker {
+    color: #57A64A;
+}
+
+nav li li {
+    list-style-type: disc;
+    font-style: italic;
+}
+
+nav ul {
+    padding: 0.5em 0;
+}
+
+nav a {
+    color: unset;
+    text-decoration: none;
+}
+
+nav a:hover {
+    color: unset;
+    text-decoration: none;
+}
+
+.unfade {
+    opacity: 0;
+    transition: opacity 300ms cubic-bezier(0.55, 0.085, 0.68, 0.53);
+}

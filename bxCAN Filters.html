@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <title>bxCAN Filters</title>
+  <style>
+  </style>
+
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+  <link rel="stylesheet"
+    href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/markdown.css">
+  <link rel="stylesheet"
+    href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/highlight.css">
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe WPC', 'Segoe UI', system-ui, 'Ubuntu', 'Droid Sans', sans-serif;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+  </style>
+  <style>
+    .task-list-item {
+      list-style-type: none;
+    }
+
+    .task-list-item-checkbox {
+      margin-left: -20px;
+      vertical-align: middle;
+    }
+  </style>
+  <style>
+    h2,
+    h3,
+    h4,
+    h5 h6 {
+      scroll-margin-top: 4em;
+    }
+
+    body.vscode-dark {
+      background-color: #1e1e1e;
+      color: #cdcdcd;
+      height: fit-content;;
+    }
+
+    body.vscode-dark::-webkit-scrollbar-track {
+      background: #1e1e1e;        /* color of the tracking area */
+    }
+    
+    body.vscode-dark::-webkit-scrollbar-thumb {
+      background-color: #4f4f4f;    /* color of the scroll thumb */
+      /*border-radius: 
+      0px;       /* roundness of the scroll thumb */
+      /*border: 3px solid orange;  /* creates padding around scroll thumb */
+    }
+
+    .vscode-light header>div {
+      background-color: white;
+      border-color: rgba(0, 0, 0, 0.18);
+    }
+
+    .vscode-dark header>div {
+      background-color: #1e1e1e;
+      border-color: rgba(255, 255, 255, 0.18);
+    }
+
+    .vscode-dark nav {
+      background-color: #1e1e1e;
+    }
+
+    .vscode-light nav {
+      background-color: white;
+    }
+
+    .vscode-dark code:not([class]) {
+      color: #D69D85;
+    }
+
+    .vscode-light code:not([class]) {
+      color: #a31515;
+    }
+
+    */ .vscode-dark h1,
+    .vscode-dark h2,
+    .vscode-dark h3,
+    .vscode-dark h4,
+    .vscode-dark h5,
+    .vscode-dark h6 {
+      color: #d4d4d4;
+    }
+
+    img {
+      max-width: min(40em, 100%);
+      height: auto;
+      margin: auto;
+      display: block;
+    }
+
+    header {
+      position: sticky;
+      top: 0;
+    }
+
+    nav {
+      max-width: 60vw;
+      direction: rtl;
+      height: 100vh;
+      float: right;
+      transition: all 2s ease;
+      top: 0;
+      padding: 0 2em;
+      margin-top: 0;
+      display: none;
+    }
+
+    nav>ul {
+      margin-top: 0;
+    }
+
+    header>div {
+      display: flex;
+      flex-flow: row wrap;
+      justify-content: space-between;
+      align-items: baseline;
+      border-bottom: 1px solid;
+      border-color: rgba(0, 0, 0, 0.18);
+      background-color: white;
+    }
+
+    h1 {
+      margin: 0;
+      padding: .6em 0 .4em;
+      flex-grow: 1;
+      border: none;
+    }
+
+    @media only screen and (min-width: 900px) {
+      nav {
+        max-width: 20em;
+        width: fit-content;
+        background-color: unset !important;
+        height: auto;
+        float: right;
+        display: block;
+        position: relative;
+        padding-left: 0;
+      }
+
+      main {
+        width: 80%;
+      }
+
+      #toc {
+        display: none;
+      }
+    }
+
+    nav li::marker {
+      color: #AAA;
+    }
+
+    #theme,
+    toc {
+      padding: 0 0.5em;
+    }
+
+    nav li {
+      list-style-type: square;
+      padding: none;
+    }
+
+    li.active::marker {
+      color: #57A64A;
+    }
+
+    nav li li {
+      list-style-type: disc;
+      font-style: italic;
+    }
+
+    nav ul {
+      padding: 0.5em 0;
+    }
+
+    nav a {
+      color: unset;
+      text-decoration: none;
+    }
+
+    nav a:hover {
+      color: unset;
+      text-decoration: none;
+    }
+
+    .unfade {
+      opacity: 0;
+      transition: opacity 300ms cubic-bezier(0.55, 0.085, 0.68, 0.53);
+    }
+  </style>
+
+
+</head>
+
+<body class="vscode-body vscode-light">
+  <header>
+    <div>
+      <h1 id="bxcan-filters">bxCAN Filters</h1>
+      <p id="theme">Light</p>
+      <p id="toc">TOC</p>
+    </div>
+    <nav>
+      <ul>
+        <li><a href="#theory">Theory</a>
+          <ul>
+            <li><a href="#setup">Setup</a></li>
+            <li><a href="#config">Config</a></li>
+            <li><a href="#id-list-mode">ID List Mode</a></li>
+            <li><a href="#mask-mode">Mask Mode</a></li>
+            <li><a href="#mapping-ids-to-the-registers">Mapping IDs to the Registers</a></li>
+            <li><a href="#other-useful-info">Other useful info</a></li>
+          </ul>
+        </li>
+        <li><a href="#design">Design</a>
+          <ul>
+            <li><a href="#0x0---0xf">0x0 - 0xF</a></li>
+            <li><a href="#even-in-0x100---0x1ff">Even in 0x100 - 0x1FF</a></li>
+            <li><a href="#ugr20-wheel-speed">UGR20 Wheel Speed</a></li>
+            <li><a href="#config-and-activate">Config and Activate</a></li>
+          </ul>
+        </li>
+        <li><a href="#test">Test</a>
+          <ul>
+            <li><a href="#full-test-code">Full Test Code</a></li>
+            <li><a href="#expected-output">Expected Output</a></li>
+          </ul>
+        </li>
+      </ul>
+    </nav>
+  </header>
+  <main>
+    <h2 id="theory">Theory</h2>
+    <p>
+      This assumes that you can already configure an STM for CAN and UART.
+      Although it was prime procrastination material, I can't justify
+      spending more time on this - I burned it all styling.
+    </p>
+    <p style="font-style: italic;">Enjoy Dark Mode</p>
+    <h3 id="setup">Setup</h3>
+    <p>To filter properly in bxCAN we will need the following variables. They are
+      pretty self explanatory but the <code>canfil</code> variable is what's really important for
+      filtering. We will use it to setup the filter settings later.</p>
+    <pre><code class="language-c++"><div>CAN_HandleTypeDef hcan1;              <span class="hljs-comment">// CAN Bus master</span>
+CAN_TxHeaderTypeDef txHeader;         <span class="hljs-comment">// CAN Bus Receive Header</span>
+<span class="hljs-keyword">uint8_t</span> canRX[<span class="hljs-number">8</span>] = {<span class="hljs-number">0</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>}; <span class="hljs-comment">// CAN Bus Receive Buffer</span>
+CAN_FilterTypeDef canfil;             <span class="hljs-comment">// CAN Bus Filter</span>
+</div></code></pre>
+    <h3 id="config">Config</h3>
+    <p>We can then configure the filter through the following settings:</p>
+    <pre><code class="language-c++"><div>canfil.FilterBank = <span class="hljs-number">0</span> - <span class="hljs-number">27</span> <span class="hljs-keyword">or</span> <span class="hljs-number">13</span>;      <span class="hljs-comment">// Filter to configure (max depends on platform)</span>
+canfil.FilterFIFOAssignment = CAN_RX_FIFO0 | CAN_RX_FIFO1; <span class="hljs-comment">// Output FIFO</span>
+canfil.FilterScale = CAN_FILTERSCALE_32BIT | CAN_FILTERSCALE_16BIT; <span class="hljs-comment">// Scale</span>
+canfil.FilterMode = CAN_FILTERMODE_IDMASK | CAN_FILTERMODE_IDLIST; <span class="hljs-comment">// Mode</span>
+canfil.FilterActivation = ENABLE | DISABLE; <span class="hljs-comment">// Enable</span>
+canfil.SlaveStartFilterBank = <span class="hljs-number">0</span> - <span class="hljs-number">27</span>;  <span class="hljs-comment">// Banks &gt;= are for CAN 2 (only makes a difference on boards with 2 can terminals)</span>
+
+canfil.FilterIdHigh = <span class="hljs-number">0</span>;      <span class="hljs-comment">// CAN_FxR1 top 2 bytes</span>
+canfil.FilterIdLow = <span class="hljs-number">0</span>;       <span class="hljs-comment">// CAN_FxR1 bottom 2 bytes</span>
+canfil.FilterMaskIdHigh = <span class="hljs-number">0</span>;  <span class="hljs-comment">// CAN_FxR2 top 2 bytes</span>
+canfil.FilterMaskIdLow = <span class="hljs-number">0</span>;   <span class="hljs-comment">// CAN_FxR2 bottom 2 bytes</span>
+</div></code></pre>
+    <p>Now STM has up to 28 configurable filter banks that can be set into 1 of 4
+      different configuration. The configurations are based on 2 modes and 2 scales.</p>
+    <ul>
+      <li>ID List vs Mask mask</li>
+      <li>16 Bit vs 32 Bit scale</li>
+    </ul>
+    <p>Basically, 16 bit can only filter a Standard IDs* whilst 32 bit can do Extended
+      too.</p>
+    <h3 id="id-list-mode">ID List Mode</h3>
+    <p>This settings is the simplest. The incoming ID is directly compared to up to 4
+      IDs per bank (2 in 32 bit scale). If it matches 1 of them it passes.</p>
+    <p>Each ID is stored in CAN_FxR1 and CAN_FxR2 and there is no real difference in
+      the role of FilterMaskIDxxxx vs FilterIdxxxx.</p>
+    <h3 id="mask-mode">Mask Mode</h3>
+    <p>A bit more complicated. The filter works using the following test: <code>INCOMING &amp; MASK == ID</code>.
+      Explicitly, this means the incoming ID is bitwise anded with
+      CAN_FxR2 and the result is compared to CAN_FxR1. As such, constructing a proper
+      mask will take some thought. Most notably, ranges are easiest to do when they
+      are a simple 2^n slices.</p>
+    <h3 id="mapping-ids-to-the-registers">Mapping IDs to the Registers</h3>
+    <p>To complicate matters further, CAN_FxR1 and CAN_FxR2 hold the ID data in a
+      specific format.</p>
+    <p><img src="./Filter%20Registers.png" alt="Filter Registers"></p>
+    <p>This means that we need to do some shifting get this into the right place.
+      Additionally, it shows that the Identification Extension (IDE) and Remote
+      Transmission Request (RTR) bits can be used in filters/</p>
+    <h3 id="other-useful-info">Other useful info</h3>
+    <p>After the filtering, a valid message (no CAN error and passes one of the
+      filters) will be passed to one of the 2 FIFOs, along with a number (filter
+      number) representing the filter that validated it. The number it will get
+      depends on the FIFO, filter bank number, and type. It starts at 0 and increments
+      as required. Below is an example, refer to the Filter registers image for more
+      info.</p>
+    <p><img src="./Filter%20Numbering.png" alt="Filter Numbering"></p>
+    <p>Each FIFO can hold up to 3 messages and messages received after it's full are
+      lost. You can tie interrupts to the FIFO and/or mailbox to handle messages when
+      they arrive. For further customisation of response based on filter you can look
+      at the filter number after the message is received from the FIFO.</p>
+    <p>The last thing to watch out for is priority. Plainly, 32 bit &gt; 16 bit then ID
+      List &gt; ID Mask. When all else is equal, lower filter bank number = higher
+      priority.</p>
+    <h2 id="design">Design</h2>
+    <p>Let's construct 4 filters giving to do the following:</p>
+    <ul>
+      <li>0x0 - 0xF</li>
+      <li>Even in 0x100 - 0x1FF</li>
+      <li>0x60 - 0x63 (UGR20 wheel speed)</li>
+    </ul>
+    <p>We'll stick to standard ID's with no IDE or RTR checking to keep things simple</p>
+    <h3 id="0x0---0xf">0x0 - 0xF</h3>
+    <p>We know that the IDs need to pass <code>INCOMING &amp; MASK = ID</code>. With that in mind we
+      should start at the mask. Setting a bit to 0 says &quot;I don't care&quot; (as it will
+      always output 0).</p>
+    <p>A standard ID is 11 bits long. To construct the mask, lets start by saying we
+      care about all bits:</p>
+    <p>Standard ID = <code>0b??? ???? ???? ????</code>.</p>
+    <p>This is a good place to start, however, we want to allowing counting from <code>0x0</code>
+      to <code>0xF</code>. This corresponds to the full range of the bottom 4 bits. As such, we
+      don't actually care about those bits so we can set them to 0.</p>
+    <table>
+      <thead>
+        <tr>
+          <th>Mask</th>
+          <th>Valid IDs</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>0bxxx xxxx xxxx 0000</code></td>
+          <td><code>0b??? ???? ???? xxxx</code></td>
+        </tr>
+      </tbody>
+    </table>
+    <p>To ensure we are in the 0 -16 bit range the rest of the bits need to be 0.
+      Consequently, the mask bits needs to be 1.</p>
+    <table>
+      <thead>
+        <tr>
+          <th>Mask</th>
+          <th>Valid IDs</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>0b111 1111 1111 0000</code></td>
+          <td><code>0b000 0000 0000 xxxx</code></td>
+        </tr>
+      </tbody>
+    </table>
+    <p>That sets our mask as <code>0x7F0</code>. if we compare that to what valid inputs would be
+      (<code>x</code> = don't care), you can see that anything with a definiate value becomes <code>1</code>
+      and don't care becomes <code>0</code>.</p>
+    <p>We can then use the Valid IDs and the MASK to get the ID (<code>CAN_FxR1</code>) value.
+      bitewise and them and it will give the solution. In this case it will be <code>0x0</code>.</p>
+    <p>The table below shows what happens in hardware.</p>
+    <table>
+      <thead>
+        <tr>
+          <th style="text-align:center">INCOMING</th>
+          <th style="text-align:center">INCOMING &amp;&amp; MASK</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td style="text-align:center"><code>0x0</code></td>
+          <td style="text-align:center"><code>0x0</code></td>
+        </tr>
+        <tr>
+          <td style="text-align:center"><code>0x1</code></td>
+          <td style="text-align:center"><code>0x0</code></td>
+        </tr>
+        <tr>
+          <td style="text-align:center"><code>0x2</code></td>
+          <td style="text-align:center"><code>0x0</code></td>
+        </tr>
+        <tr>
+          <td style="text-align:center"><code>0x3</code></td>
+          <td style="text-align:center"><code>0x0</code></td>
+        </tr>
+        <tr>
+          <td style="text-align:center"><code>0x4</code></td>
+          <td style="text-align:center"><code>0x0</code></td>
+        </tr>
+        <tr>
+          <td style="text-align:center"><code>0x5</code></td>
+          <td style="text-align:center"><code>0x0</code></td>
+        </tr>
+        <tr>
+          <td style="text-align:center"><code>0x6</code></td>
+          <td style="text-align:center"><code>0x0</code></td>
+        </tr>
+        <tr>
+          <td style="text-align:center"><code>0x7</code></td>
+          <td style="text-align:center"><code>0x0</code></td>
+        </tr>
+        <tr>
+          <td style="text-align:center"><code>0x9</code></td>
+          <td style="text-align:center"><code>0x0</code></td>
+        </tr>
+        <tr>
+          <td style="text-align:center"><code>0xA</code></td>
+          <td style="text-align:center"><code>0x0</code></td>
+        </tr>
+        <tr>
+          <td style="text-align:center"><code>0xB</code></td>
+          <td style="text-align:center"><code>0x0</code></td>
+        </tr>
+        <tr>
+          <td style="text-align:center"><code>0xC</code></td>
+          <td style="text-align:center"><code>0x0</code></td>
+        </tr>
+        <tr>
+          <td style="text-align:center"><code>0xD</code></td>
+          <td style="text-align:center"><code>0x0</code></td>
+        </tr>
+        <tr>
+          <td style="text-align:center"><code>0xE</code></td>
+          <td style="text-align:center"><code>0x0</code></td>
+        </tr>
+        <tr>
+          <td style="text-align:center"><code>0xF</code></td>
+          <td style="text-align:center"><code>0x0</code></td>
+        </tr>
+        <tr>
+          <td style="text-align:center"><code>0x10</code></td>
+          <td style="text-align:center"><code>0x10</code></td>
+        </tr>
+        <tr>
+          <td style="text-align:center"><code>0x11</code></td>
+          <td style="text-align:center"><code>0x10</code></td>
+        </tr>
+        <tr>
+          <td style="text-align:center", colspan=2>...</td>
+        </tr>
+        <tr>
+          <td style="text-align:center"><code>0x20005</code></td>
+          <td style="text-align:center"><code>0x2000</code></td>
+        </tr>
+      </tbody>
+    </table>
+    <p>From the table you should see that 0 would be the proper ID for this. You should
+      also note that the same MASK would be used for <strong>any</strong> simple 16 bit range. The
+      ID is used to select the one you desire.</p>
+    <pre><code class="language-c++"><div>canfil.FilterBank = <span class="hljs-number">0</span>;
+canfil.FilterFIFOAssignment = CAN_RX_FIFO0; 
+canfil.FilterScale = CAN_FILTERSCALE_16BIT;
+canfil.FilterMode = CAN_FILTERMODE_IDMASK;
+canfil.FilterActivation = ENABLE; 
+
+<span class="hljs-comment">// Filter number 0</span>
+canfil.FilterIdHigh = <span class="hljs-number">0x7FF0</span> &lt; <span class="hljs-number">5</span>; <span class="hljs-comment">// Mask in 16 bit mode, shift for placement</span>
+canfil.FilterIdLow = <span class="hljs-number">0</span>;           <span class="hljs-comment">// ID in 16 bit mode, shift for placement</span>
+</div></code></pre>
+    <h3 id="even-in-0x100---0x1ff">Even in 0x100 - 0x1FF</h3>
+    <ul>
+      <li>A valid id looks like <code>0b000 0001 xxxx xxx0</code></li>
+      <li>Mask
+        <ul>
+          <li>Top 3 bits need to be 0 to be in the right range</li>
+          <li>Next 3 need to be 0001 to be in the right range</li>
+          <li>Last bit tells us if even or odd, hence final</li>
+          <li>All other bits don't matter</li>
+          <li>Therefore mask <code>0b111 1111 0000 0001</code> or <code>0x7F01</code></li>
+        </ul>
+      </li>
+      <li>ID
+        <ul>
+          <li>Top 3 will come out 0 as 1 &amp; 0 = 0</li>
+          <li>Next byte will come out as 1</li>
+          <li>Next byte always 0</li>
+          <li>Next byte must be 0 for even</li>
+          <li>Therefore id = <code>0x100</code></li>
+        </ul>
+      </li>
+    </ul>
+    <pre><code class="language-c++"><div><span class="hljs-comment">// In 16 bit mode you can have 2 mask filters in 1 object</span>
+<span class="hljs-comment">// Filter number 1</span>
+canfil.FilterMaskIdHigh = <span class="hljs-number">0x7F01</span> &lt; <span class="hljs-number">5</span>; <span class="hljs-comment">// Mask in 16 bit mode, shift for placement</span>
+canfil.FilterMaskIdLow = <span class="hljs-number">0x100</span> &lt;<span class="hljs-number">5</span>;    <span class="hljs-comment">// ID in 16 bit mode, shift for placement</span>
+</div></code></pre>
+    <h3 id="ugr20-wheel-speed">UGR20 Wheel Speed</h3>
+    <p>4 ID's, lets use a list.</p>
+    <pre><code class="language-c++"><div>canfil2.FilterBank = <span class="hljs-number">1</span>;
+canfil2.FilterFIFOAssignment = CAN_RX_FIFO0; 
+canfil2.FilterScale = CAN_FILTERSCALE_16BIT;
+canfil2.FilterMode = CAN_FILTERMODE_IDLIST;
+canfil2.FilterActivation = ENABLE; 
+
+<span class="hljs-comment">// Filters 2 - 5</span>
+canfil2.FilterIdHigh = <span class="hljs-number">0x60</span> &lt; <span class="hljs-number">5</span>;     <span class="hljs-comment">// ID1 in 16 bit mode, shift for placement</span>
+canfil2.FilterIdLow = <span class="hljs-number">0x61</span> &lt; <span class="hljs-number">5</span>;      <span class="hljs-comment">// ID2 in 16 bit mode, shift for placement</span>
+canfil2.FilterMaskIdHigh = <span class="hljs-number">0x62</span> &lt; <span class="hljs-number">5</span>; <span class="hljs-comment">// ID5 in 16 bit mode, shift for placement</span>
+canfil2.FilterMaskIdLow = <span class="hljs-number">0x63</span> &lt; <span class="hljs-number">5</span>;  <span class="hljs-comment">// ID4 in 16 bit mode, shift for placement</span>
+</div></code></pre>
+    <h3 id="config-and-activate">Config and Activate</h3>
+    <pre><code class="language-c++"><div>HAL_CAN_ConfigFilter(&amp;hcan1,&amp;canfil); <span class="hljs-comment">//Initialize CAN Filter</span>
+HAL_CAN_ConfigFilter(&amp;hcan1,&amp;canfil2); <span class="hljs-comment">//Initialize CAN Filter</span>
+HAL_CAN_Start(&amp;hcan1); <span class="hljs-comment">//Initialize CAN Bus</span>
+HAL_CAN_ActivateNotification(&amp;hcan1,CAN_IT_RX_FIFO0_MSG_PENDING); <span class="hljs-comment">// Initialize CAN Bus Rx Interrupt when message pending</span>
+</div></code></pre>
+    <p>The relevant CAN interrupts are:</p>
+    <table>
+      <thead>
+        <tr>
+          <th>Interrupt</th>
+          <th>Callback</th>
+          <th>Comment</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>CAN_IT_RX_FIFO&lt;0|1&gt;_MSG_PENDING</td>
+          <td>HAL_CAN_RxFifo&lt;0|1&gt;MsgPendingCallback</td>
+          <td>FIFO 0|1 message pending interrupt</td>
+        </tr>
+        <tr>
+          <td>CAN_IT_RX_FIFO&lt;0|1&gt;_FULL</td>
+          <td>HAL_CAN_RxFifo&lt;0|1&gt;FullCallback</td>
+          <td>FIFO 0|1 full interrupt</td>
+        </tr>
+        <tr>
+          <td>CAN_IT_RX_FIFO&lt;0|1&gt;_OVERRUN</td>
+          <td>Not too sure</td>
+          <td>FIFO 0|1 overrun interrupt</td>
+        </tr>
+      </tbody>
+    </table>
+    <h2 id="test">Test</h2>
+    <p>Lets send some messages to test our filters.</p>
+    <p>Some TX and UART vars</p>
+    <pre><code class="language-c++"><div><span class="hljs-comment">// Tx Setup</span>
+CAN_TxHeaderTypeDef txHeader; <span class="hljs-comment">//CAN Bus Receive Header</span>
+UART_HandleTypeDef huart2;
+txHeader.DLC = <span class="hljs-number">8</span>; <span class="hljs-comment">// Number of bites to be transmitted max- 8</span>
+txHeader.IDE = CAN_ID_STD;
+txHeader.RTR = CAN_RTR_DATA;
+txHeader.ExtId = <span class="hljs-number">0x0</span>;
+txHeader.TransmitGlobalTime = DISABLE;
+<span class="hljs-keyword">uint8_t</span> csend1[<span class="hljs-number">8</span>] = {<span class="hljs-string">&#x27;0&#x27;</span>,<span class="hljs-string">&#x27;x&#x27;</span>,<span class="hljs-string">&#x27;0&#x27;</span>,<span class="hljs-string">&#x27;-&#x27;</span>,<span class="hljs-string">&#x27;0&#x27;</span>,<span class="hljs-string">&#x27;x&#x27;</span>,<span class="hljs-string">&#x27;F&#x27;</span>,<span class="hljs-string">&#x27;!&#x27;</span>}
+<span class="hljs-keyword">uint8_t</span> csend2[<span class="hljs-number">8</span>] = {<span class="hljs-string">&#x27;1&#x27;</span>,<span class="hljs-string">&#x27;0&#x27;</span>,<span class="hljs-string">&#x27;0&#x27;</span>,<span class="hljs-string">&#x27;-&#x27;</span>,<span class="hljs-string">&#x27;1&#x27;</span>,<span class="hljs-string">&#x27;F&#x27;</span>,<span class="hljs-string">&#x27;F&#x27;</span>,<span class="hljs-string">&#x27;!&#x27;</span>}
+<span class="hljs-keyword">uint8_t</span> csend3[<span class="hljs-number">8</span>] = {<span class="hljs-string">&#x27;L&#x27;</span>,<span class="hljs-string">&#x27;i&#x27;</span>,<span class="hljs-string">&#x27;s&#x27;</span>,<span class="hljs-string">&#x27;t&#x27;</span>,<span class="hljs-string">&#x27;s&#x27;</span>,<span class="hljs-string">&#x27;!&#x27;</span>,<span class="hljs-string">&#x27;!&#x27;</span>,<span class="hljs-string">&#x27;!&#x27;</span>}
+<span class="hljs-keyword">uint8_t</span> csend4[<span class="hljs-number">8</span>] = {<span class="hljs-string">&#x27;E&#x27;</span>,<span class="hljs-string">&#x27;r&#x27;</span>,<span class="hljs-string">&#x27;r&#x27;</span>,<span class="hljs-string">&#x27;o&#x27;</span>,<span class="hljs-string">&#x27;r&#x27;</span>,<span class="hljs-string">&#x27;!&#x27;</span>,<span class="hljs-string">&#x27;!&#x27;</span>,<span class="hljs-string">&#x27;!&#x27;</span>}
+</div></code></pre>
+    <p>We can send some data every half second</p>
+    <pre><code class="language-c++"><div><span class="hljs-function"><span class="hljs-keyword">int</span> <span class="hljs-title">main</span><span class="hljs-params">()</span> </span>{
+<span class="hljs-comment">// Send valid then error</span>
+  <span class="hljs-keyword">while</span>(<span class="hljs-number">1</span>) {
+    txHeader.StdId = <span class="hljs-number">0x5</span>;
+    HAL_CAN_AddTxMessage(&amp;hcan1,&amp;txHeader,csend1,&amp;canMailbox); <span class="hljs-comment">// Send Message</span>
+    HAL_Delay(<span class="hljs-number">500</span>);
+
+    txHeader.StdId = <span class="hljs-number">0x10</span>;
+    HAL_CAN_AddTxMessage(&amp;hcan1,&amp;txHeader,csend4,&amp;canMailbox); <span class="hljs-comment">// Send Message</span>
+    HAL_Delay(<span class="hljs-number">500</span>);
+
+    txHeader.StdId = <span class="hljs-number">0x148</span>;
+    HAL_CAN_AddTxMessage(&amp;hcan1,&amp;txHeader,csend2,&amp;canMailbox); <span class="hljs-comment">// Send Message</span>
+    HAL_Delay(<span class="hljs-number">500</span>);
+
+    txHeader.StdId = <span class="hljs-number">0x149</span>;
+    HAL_CAN_AddTxMessage(&amp;hcan1,&amp;txHeader,csend4,&amp;canMailbox); <span class="hljs-comment">// Send Message</span>
+    HAL_Delay(<span class="hljs-number">500</span>);
+
+    txHeader.StdId = <span class="hljs-number">0x62</span>;
+    HAL_CAN_AddTxMessage(&amp;hcan1,&amp;txHeader,csend3,&amp;canMailbox); <span class="hljs-comment">// Send Message</span>
+    HAL_Delay(<span class="hljs-number">500</span>);
+
+    txHeader.StdId = <span class="hljs-number">0x64</span>;
+    HAL_CAN_AddTxMessage(&amp;hcan1,&amp;txHeader,csend4,&amp;canMailbox); <span class="hljs-comment">// Send Message</span>
+    HAL_Delay(<span class="hljs-number">500</span>);
+  }
+]
+</div></code></pre>
+    <p>In the interrupt we can deal with give a unique response based on the filter
+      number.</p>
+    <pre><code class="language-c++"><div><span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">HAL_CAN_RxFifo0MsgPendingCallback</span><span class="hljs-params">(CAN_HandleTypeDef *hcan1)</span>
+</span>{
+  HAL_CAN_GetRxMessage(hcan1, CAN_RX_FIFO0, &amp;rxHeader, canRX); <span class="hljs-comment">//Receive CAN bus message to canRX buffer</span>
+  <span class="hljs-keyword">uint8_t</span> buffer[<span class="hljs-number">23</span>];
+  <span class="hljs-keyword">switch</span> (b) {
+    <span class="hljs-keyword">case</span> <span class="hljs-number">0</span>:
+      buffer = <span class="hljs-string">&quot;First Mask  :&quot;</span>;
+      <span class="hljs-keyword">break</span>;
+    <span class="hljs-keyword">case</span> <span class="hljs-number">1</span>:
+      buffer = <span class="hljs-string">&quot;Second Mask :&quot;</span>;
+      <span class="hljs-keyword">break</span>;
+    <span class="hljs-keyword">case</span> <span class="hljs-number">2</span>:
+    <span class="hljs-keyword">case</span> <span class="hljs-number">3</span>:
+    <span class="hljs-keyword">case</span> <span class="hljs-number">4</span>:
+    <span class="hljs-keyword">case</span> <span class="hljs-number">5</span>:
+      buffer = <span class="hljs-string">&quot;List filter :&quot;</span>;
+      <span class="hljs-keyword">break</span>;
+    <span class="hljs-keyword">default</span>:
+      buffer = <span class="hljs-string">&quot;Oh no       :&quot;</span>;
+  }
+  <span class="hljs-built_in">std</span>::copy(canRX,canRX+<span class="hljs-keyword">sizeof</span>(canRX),buffer+<span class="hljs-number">14</span>);
+  
+  <span class="hljs-comment">// Bad, I know, but this is just for testing</span>
+  HAL_UART_Transmit(&amp;huart2, buffer, <span class="hljs-keyword">sizeof</span>(buffer), HAL_MAX_DELAY);
+
+}
+</div></code></pre>
+    <h3 id="full-test-code">Full Test Code</h3>
+    <p>So the full STM32CubeIDE additions will looks something like the following. This
+      is the setup doesn't need a CAN network as we will work in LOOPBACK mode.</p>
+    <pre><code class="language-c++"><div><span class="hljs-comment">/* Private variables ---------------------------------------------------------*/</span>
+CAN_HandleTypeDef hcan1;
+
+UART_HandleTypeDef huart2;
+
+<span class="hljs-comment">/* USER CODE BEGIN PV */</span>
+CAN_RxHeaderTypeDef rxHeader; <span class="hljs-comment">//CAN Bus Transmit Header</span>
+CAN_TxHeaderTypeDef txHeader; <span class="hljs-comment">//CAN Bus Receive Header</span>
+<span class="hljs-keyword">uint8_t</span> canRX[<span class="hljs-number">8</span>] = {<span class="hljs-number">0</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>};  <span class="hljs-comment">//CAN Bus Receive Buffer</span>
+CAN_FilterTypeDef canfil, canfil2; <span class="hljs-comment">//CAN Bus Filter</span>
+...
+<span class="hljs-function"><span class="hljs-keyword">int</span> <span class="hljs-title">main</span><span class="hljs-params">(<span class="hljs-keyword">void</span>)</span>
+</span>{
+  ...
+  <span class="hljs-comment">/* USER CODE BEGIN 2 */</span>
+
+  <span class="hljs-comment">// Filters</span>
+  canfil.FilterBank = <span class="hljs-number">0</span>;
+  canfil.FilterMode = CAN_FILTERMODE_IDMASK;
+  canfil.FilterFIFOAssignment = CAN_RX_FIFO0;
+  canfil.FilterScale = CAN_FILTERSCALE_32BIT;
+  canfil.FilterActivation = ENABLE;
+
+  <span class="hljs-comment">// Filter number 0</span>
+  canfil.FilterIdHigh = <span class="hljs-number">0x7FF0</span> &lt; <span class="hljs-number">5</span>; <span class="hljs-comment">// Mask in 16 bit mode, shift for placement</span>
+  canfil.FilterIdLow = <span class="hljs-number">0</span>;           <span class="hljs-comment">// ID in 16 bit mode, shift for placement</span>
+
+  <span class="hljs-comment">// In 16 bit mode you can have 2 mask filters in 1 object</span>
+  <span class="hljs-comment">// Filter number 1</span>
+  canfil.FilterMaskIdHigh = <span class="hljs-number">0x7F01</span> &lt; <span class="hljs-number">5</span>; <span class="hljs-comment">// Mask in 16 bit mode, shift for placement</span>
+  canfil.FilterMaskIdLow = <span class="hljs-number">0x100</span> &lt;<span class="hljs-number">5</span>;    <span class="hljs-comment">// ID in 16 bit mode, shift for placement</span>
+
+  canfil2.FilterBank = <span class="hljs-number">1</span>;
+  canfil2.FilterFIFOAssignment = CAN_RX_FIFO0; 
+  canfil2.FilterScale = CAN_FILTERSCALE_16BIT;
+  canfil2.FilterMode = CAN_FILTERMODE_IDLIST;
+  canfil2.FilterActivation = ENABLE; 
+
+  <span class="hljs-comment">// Filters 2 - 5</span>
+  canfil2.FilterIdHigh = <span class="hljs-number">0x60</span> &lt; <span class="hljs-number">5</span>;     <span class="hljs-comment">// ID1 in 16 bit mode, shift for placement</span>
+  canfil2.FilterIdLow = <span class="hljs-number">0x61</span> &lt; <span class="hljs-number">5</span>;      <span class="hljs-comment">// ID2 in 16 bit mode, shift for placement</span>
+  canfil2.FilterMaskIdHigh = <span class="hljs-number">0x62</span> &lt; <span class="hljs-number">5</span>; <span class="hljs-comment">// ID5 in 16 bit mode, shift for placement</span>
+  canfil2.FilterMaskIdLow = <span class="hljs-number">0x63</span> &lt; <span class="hljs-number">5</span>;  <span class="hljs-comment">// ID4 in 16 bit mode, shift for placement</span>
+
+  HAL_CAN_ConfigFilter(&amp;hcan1,&amp;canfil); <span class="hljs-comment">//Initialize CAN Filter</span>
+  HAL_CAN_ConfigFilter(&amp;hcan1,&amp;canfil2); <span class="hljs-comment">//Initialize CAN Filter</span>
+  HAL_CAN_Start(&amp;hcan1); <span class="hljs-comment">//Initialize CAN Bus</span>
+  HAL_CAN_ActivateNotification(&amp;hcan1,CAN_IT_RX_FIFO0_MSG_PENDING); <span class="hljs-comment">// Initialize CAN Bus Rx Interrupt when message pending</span>
+
+  <span class="hljs-comment">// Header</span>
+  txHeader.DLC = <span class="hljs-number">8</span>; <span class="hljs-comment">// Number of bites to be transmitted max- 8</span>
+  txHeader.IDE = CAN_ID_STD;
+  txHeader.RTR = CAN_RTR_DATA;
+  txHeader.ExtId = <span class="hljs-number">0x0</span>;
+  txHeader.TransmitGlobalTime = DISABLE;
+  <span class="hljs-keyword">uint8_t</span> csend1[<span class="hljs-number">8</span>] = {<span class="hljs-string">&#x27;0&#x27;</span>,<span class="hljs-string">&#x27; &#x27;</span>,<span class="hljs-string">&#x27;-&#x27;</span>,<span class="hljs-string">&#x27; &#x27;</span>,<span class="hljs-string">&#x27;1&#x27;</span>,<span class="hljs-string">&#x27;5&#x27;</span>,<span class="hljs-string">&#x27;!&#x27;</span>,<span class="hljs-string">&#x27;!&#x27;</span>}
+  <span class="hljs-keyword">uint8_t</span> csend2[<span class="hljs-number">8</span>] = {<span class="hljs-string">&#x27;1&#x27;</span>,<span class="hljs-string">&#x27;0&#x27;</span>,<span class="hljs-string">&#x27;0&#x27;</span>,<span class="hljs-string">&#x27;-&#x27;</span>,<span class="hljs-string">&#x27;1&#x27;</span>,<span class="hljs-string">&#x27;F&#x27;</span>,<span class="hljs-string">&#x27;F&#x27;</span>,<span class="hljs-string">&#x27;!&#x27;</span>}
+  <span class="hljs-keyword">uint8_t</span> csend3[<span class="hljs-number">8</span>] = {<span class="hljs-string">&#x27;L&#x27;</span>,<span class="hljs-string">&#x27;i&#x27;</span>,<span class="hljs-string">&#x27;s&#x27;</span>,<span class="hljs-string">&#x27;t&#x27;</span>,<span class="hljs-string">&#x27;s&#x27;</span>,<span class="hljs-string">&#x27;!&#x27;</span>,<span class="hljs-string">&#x27;!&#x27;</span>,<span class="hljs-string">&#x27;!&#x27;</span>}
+  <span class="hljs-keyword">uint8_t</span> csend4[<span class="hljs-number">8</span>] = {<span class="hljs-string">&#x27;E&#x27;</span>,<span class="hljs-string">&#x27;r&#x27;</span>,<span class="hljs-string">&#x27;r&#x27;</span>,<span class="hljs-string">&#x27;o&#x27;</span>,<span class="hljs-string">&#x27;r&#x27;</span>,<span class="hljs-string">&#x27;!&#x27;</span>,<span class="hljs-string">&#x27;!&#x27;</span>,<span class="hljs-string">&#x27;!&#x27;</span>}
+
+  <span class="hljs-comment">/* USER CODE END 2 */</span>
+
+  <span class="hljs-comment">/* Infinite loop */</span>
+  <span class="hljs-comment">/* USER CODE BEGIN WHILE */</span>
+  <span class="hljs-keyword">while</span>(<span class="hljs-number">1</span>) {
+    <span class="hljs-comment">/* USER CODE END WHILE */</span>
+    <span class="hljs-comment">/* USER CODE BEGIN 3 */</span>
+    txHeader.StdId = <span class="hljs-number">0x5</span>;
+    HAL_CAN_AddTxMessage(&amp;hcan1,&amp;txHeader,csend1,&amp;canMailbox); <span class="hljs-comment">// Send Message</span>
+    HAL_Delay(<span class="hljs-number">500</span>);
+
+    txHeader.StdId = <span class="hljs-number">0x10</span>;
+    HAL_CAN_AddTxMessage(&amp;hcan1,&amp;txHeader,csend4,&amp;canMailbox); <span class="hljs-comment">// Send Message</span>
+    HAL_Delay(<span class="hljs-number">500</span>);
+
+    txHeader.StdId = <span class="hljs-number">0x148</span>;
+    HAL_CAN_AddTxMessage(&amp;hcan1,&amp;txHeader,csend2,&amp;canMailbox); <span class="hljs-comment">// Send Message</span>
+    HAL_Delay(<span class="hljs-number">500</span>);
+
+    txHeader.StdId = <span class="hljs-number">0x149</span>;
+    HAL_CAN_AddTxMessage(&amp;hcan1,&amp;txHeader,csend4,&amp;canMailbox); <span class="hljs-comment">// Send Message</span>
+    HAL_Delay(<span class="hljs-number">500</span>);
+
+    txHeader.StdId = <span class="hljs-number">0x62</span>;
+    HAL_CAN_AddTxMessage(&amp;hcan1,&amp;txHeader,csend3,&amp;canMailbox); <span class="hljs-comment">// Send Message</span>
+    HAL_Delay(<span class="hljs-number">500</span>);
+
+    txHeader.StdId = <span class="hljs-number">0x64</span>;
+    HAL_CAN_AddTxMessage(&amp;hcan1,&amp;txHeader,csend4,&amp;canMailbox); <span class="hljs-comment">// Send Message</span>
+    HAL_Delay(<span class="hljs-number">500</span>);
+  }
+  <span class="hljs-comment">/* USER CODE END 3*/</span>
+}
+...
+<span class="hljs-comment">/* USER CODE BEGIN 4 */</span>
+<span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">HAL_CAN_RxFifo0MsgPendingCallback</span><span class="hljs-params">(CAN_HandleTypeDef *hcan1)</span>
+</span>{
+  HAL_CAN_GetRxMessage(hcan1, CAN_RX_FIFO0, &amp;rxHeader, canRX); <span class="hljs-comment">//Receive CAN bus message to canRX buffer</span>
+  <span class="hljs-keyword">uint8_t</span> buffer[<span class="hljs-number">23</span>];
+  <span class="hljs-keyword">switch</span> (b) {
+    <span class="hljs-keyword">case</span> <span class="hljs-number">0</span>:
+      buffer = <span class="hljs-string">&quot;First Mask  : &quot;</span>;
+      <span class="hljs-keyword">break</span>;
+    <span class="hljs-keyword">case</span> <span class="hljs-number">1</span>:
+      buffer = <span class="hljs-string">&quot;Second Mask : &quot;</span>;
+      <span class="hljs-keyword">break</span>;
+    <span class="hljs-keyword">case</span> <span class="hljs-number">2</span>:
+    <span class="hljs-keyword">case</span> <span class="hljs-number">3</span>:
+    <span class="hljs-keyword">case</span> <span class="hljs-number">4</span>:
+    <span class="hljs-keyword">case</span> <span class="hljs-number">5</span>:
+      buffer = <span class="hljs-string">&quot;List filter : &quot;</span>;
+      <span class="hljs-keyword">break</span>;
+    <span class="hljs-keyword">default</span>:
+      buffer = <span class="hljs-string">&quot;Oh no       : &quot;</span>;
+  }
+  <span class="hljs-built_in">std</span>::copy(canRX,canRX+<span class="hljs-keyword">sizeof</span>(canRX),buffer+<span class="hljs-number">14</span>);
+  buffer[<span class="hljs-number">23</span>] = <span class="hljs-string">&#x27;\n&#x27;</span>;
+  
+  <span class="hljs-comment">// Bad I know but this is just for testing</span>
+  HAL_UART_Transmit(&amp;huart2, buffer, <span class="hljs-keyword">sizeof</span>(buffer), HAL_MAX_DELAY);
+
+}
+<span class="hljs-comment">/* USER CODE END 4 */</span>
+</div></code></pre>
+    <h3 id="expected-output">Expected Output</h3>
+    <p>Upload the script. If all goes well the following should be output to the serial
+      monitor at ~ 1 line/s.</p>
+    <pre><code class="language-console"><div>First Mask  : 0x0-0xF!
+Second Mask : 100-1FF!
+List Mode   : Lists!!!
+</div></code></pre>
+  </main>
+  <script src="md%20html.js"></script>
+</body>
+
+</html>
